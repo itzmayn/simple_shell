@@ -224,17 +224,25 @@ void init(char **current_command, int type_command)
 
     if (type_command == EXTERNAL_COMMAND || type_command == PATH_COMMAND)
     {
+        /* Create a child process to execute the command */
         PID = fork();
         if (PID == 0)
+        {
+            /* Child process executes the command */
             execute_command(current_command, type_command);
+        }
         else
         {
+            /* Parent process waits for the child to finish executing */
             waitpid(PID, &status, 0);
             status >>= 8;
         }
     }
     else
+    {
+        /* Execute the command directly */
         execute_command(current_command, type_command);
+    }
 }
 
 /**
