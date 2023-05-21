@@ -205,3 +205,34 @@ int power(int base, int exponent)
 
     return result;
 }
+
+/**
+ * init - Start executing the command
+ * @current_command: The current command to execute
+ * @type_command: The type of command
+ *
+ * This function is responsible for initiating the execution of the command.
+ * If the command is an external command or a command in the PATH, it creates
+ * a child process to execute the command. Otherwise, it directly executes
+ * the command.
+ *
+ * Return: void
+ */
+void init(char **current_command, int type_command)
+{
+    pid_t PID;
+
+    if (type_command == EXTERNAL_COMMAND || type_command == PATH_COMMAND)
+    {
+        PID = fork();
+        if (PID == 0)
+            execute_command(current_command, type_command);
+        else
+        {
+            waitpid(PID, &status, 0);
+            status >>= 8;
+        }
+    }
+    else
+        execute_command(current_command, type_command);
+}
