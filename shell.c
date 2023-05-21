@@ -127,3 +127,59 @@ int main(int argc __attribute__((unused)), char **argv)
 
 	return (status);
 }
+
+/**
+ * handle_senario_a - Handles a non-interactive mode
+ *
+ * This function is responsible for handling a scenario where the shell
+ * is not running in interactive mode. It reads commands from the standard input
+ * and executes them.
+ *
+ * Return: void
+ */
+void handle_senario_a(void)
+{
+	char **current_command = NULL;
+	int i, type_command = 0;
+	size_t n = 0;
+
+	/* Check if the standard input is not a terminal */
+	if (!(isatty(STDIN_FILENO)))
+	{
+		/* Read commands from the standard input */
+		while (getline(&line, &n, stdin) != -1)
+		{
+			/* Remove leading/trailing whitespaces and remove comments */
+			_line_rm(line);
+			remove_comment(line);
+
+			/* Tokenize the command by semicolon */
+			commands = tokenizer(line, ";");
+
+			for (i = 0; commands[i] != NULL; i++)
+			{
+				/* Tokenize each individual command */
+				current_command = tokenizer(commands[i], " ");
+
+				if (current_command[0] == NULL)
+				{
+					free(current_command);
+					break;
+				}
+
+				/* Determine the type of command */
+				type_command = parse_command(current_command[0]);
+
+				/* Initialize and execute the command */
+				init(current_command, type_command);
+
+				free(current_command);
+			}
+
+			free(commands);
+		}
+
+		free(line);
+		exit(status);
+	}
+}
