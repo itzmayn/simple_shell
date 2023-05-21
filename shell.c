@@ -183,3 +183,25 @@ void handle_senario_a(void)
 		exit(status);
 	}
 }
+
+/**
+ * power - Calculates the power of a number
+ * @base: The base number
+ * @exponent: The exponent
+ *
+ * This function calculates the result of raising the base number to the given exponent.
+ *
+ * Return: The result of raising the base to the exponent
+ */
+int power(int base, int exponent)
+{
+    int result = 1;
+
+    while (exponent > 0)
+    {
+        result *= base;
+        exponent--;
+    }
+
+    return result;
+}
