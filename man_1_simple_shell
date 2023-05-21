@@ -1,0 +1,11 @@
+This is a brief description of a C-based UNIX command interpreter, which functions as a clone of the "sh" command interpreter. It performs the following tasks:
+
+    Executes commands obtained from the standard input.
+    Provides the status of the most recently executed command, returning 0 if no command was executed. Numeric values indicate exit failure codes.
+    Utilizes the PATH environment variable to locate executable program files.
+    Can be invoked interactively or non-interactively.
+    When invoked without a terminal connected to the standard input, it reads and executes commands in the received order.
+    When invoked with a terminal connected to the standard input, it opens an interactive shell.
+    Displays the prompt "($)" to indicate readiness for command input.
+    Command options are specified after the main command, preceded by a space and a '-' symbol.
+    For example: "./hsh [command] [options]"
