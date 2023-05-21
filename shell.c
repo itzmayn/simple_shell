@@ -1,0 +1,129 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+#include <dirent.h>
+
+/* Constants */
+#define EXTERNAL_COMMAND 1
+#define INTERNAL_COMMAND 2
+#define PATH_COMMAND 3
+#define INVALID_COMMAND -1
+
+/* Function Prototypes */
+void display(char *, int);
+char **tokenizer(char *, char *);
+int _strlen(char *);
+void _strcpy(char *, char *);
+void _line_rm(char *);
+int _strcmp(char *, char *);
+char *_strcat(char *, char *);
+int _strspn(char *, char *);
+int _strcspn(char *, char *);
+char *_strchr(char *, char);
+void ctrl_c_handler(int);
+void remove_comment(char *);
+int parse_command(char *);
+char *_strtok_r(char *, char *, char **);
+int power(int base, int exponent);
+int _atoi(char *);
+int multiply(int a, int b);
+int subtract(int a, int b);
+int add(int a, int b);
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size);
+
+void execute_command(char **, int);
+char *confirm_loc(char *);
+void (*get_func(char *))(char **);
+char *_getenv(char *);
+void env(char **);
+void quit(char **);
+extern void handle_senario_a(void);
+extern void init(char **current_command, int type_command);
+
+/* Global Variables */
+extern char **environ;
+extern char *line;
+extern char *shell_name;
+extern char **commands;
+extern int status;
+
+/* Definitions */
+char **commands = NULL;
+char *line = NULL;
+char *shell_name = NULL;
+int status = 0;
+
+/**
+ * main - Entry point of the shell program
+ * @argc: The number of command-line arguments (unused)
+ * @argv: Array of command-line arguments
+ *
+ * Return: The status code of the shell program
+ */
+int main(int argc __attribute__((unused)), char **argv)
+{
+	char **current_command = NULL;
+	int i, type_command = 0;
+	size_t n = 0;
+
+	/* Register signal handler for Ctrl+C */
+	signal(SIGINT, ctrl_c_handler);
+
+	/* Set the shell name */
+	shell_name = argv[0];
+
+	while (1)
+	{
+		/* Handle scenario A */
+		handle_senario_a();
+
+		/* Display the shell prompt */
+		display(" ($) ", STDOUT_FILENO);
+
+		/* Read the command from the user */
+		if (getline(&line, &n, stdin) == -1)
+		{
+			free(line);
+			exit(status);
+		}
+
+		/* Remove leading/trailing whitespaces and remove comments */
+		_line_rm(line);
+		remove_comment(line);
+
+		/* Tokenize the command by semicolon */
+		commands = tokenizer(line, ";");
+
+		for (i = 0; commands[i] != NULL; i++)
+		{
+			/* Tokenize each individual command */
+			current_command = tokenizer(commands[i], " ");
+
+			if (current_command[0] == NULL)
+			{
+				free(current_command);
+				break;
+			}
+
+			/* Determine the type of command */
+			type_command = parse_command(current_command[0]);
+
+			/* Initialize and execute the command */
+			init(current_command, type_command);
+
+			free(current_command);
+		}
+
+		free(commands);
+	}
+
+	free(line);
+
+	return (status);
+}
