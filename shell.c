@@ -236,3 +236,56 @@ void init(char **current_command, int type_command)
     else
         execute_command(current_command, type_command);
 }
+
+/**
+ * _strtok_r - Tokenizes a string
+ * @string: The string to be tokenized
+ * @delim: The delimiter used to tokenize the string
+ * @save_ptr: Pointer to keep track of the next token
+ *
+ * This function takes a string and a delimiter and returns the next token
+ * from the string. The `save_ptr` argument is used to keep track of the next
+ * token, allowing the caller to tokenize multiple strings simultaneously.
+ *
+ * Return: The next available token, or NULL if there are no more tokens.
+ */
+char *_strtok_r(char *string, char *delim, char **save_ptr)
+{
+	char *finish;
+
+	/* If string is NULL, use the save_ptr */
+	if (string == NULL)
+		string = *save_ptr;
+
+	/* If the current position is at the end of the string, no more tokens */
+	if (*string == '\0')
+	{
+		*save_ptr = string;
+		return (NULL);
+	}
+
+	/* Skip leading delimiters */
+	string += _strspn(string, delim);
+
+	/* If the current position is at the end of the string, no more tokens */
+	if (*string == '\0')
+	{
+		*save_ptr = string;
+		return (NULL);
+	}
+
+	/* Find the end of the token */
+	finish = string + _strcspn(string, delim);
+
+	/* If the end of the string is reached, update save_ptr and return the token */
+	if (*finish == '\0')
+	{
+		*save_ptr = finish;
+		return (string);
+	}
+
+	/* Null-terminate the token, update save_ptr, and return the token */
+	*finish = '\0';
+	*save_ptr = finish + 1;
+	return (string);
+}
