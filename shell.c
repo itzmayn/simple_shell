@@ -616,3 +616,24 @@ char *_strchr(char *s, char c)
     }
 }
 
+/**
+ * display - Displays a string to stdout
+ * @string: The string to be displayed
+ * @stream: The stream to display the string to
+ *
+ * This function writes the characters of the string to the specified stream.
+ * It iterates over the characters of the string until the null terminator is
+ * reached and writes each character to the stream using the write system call.
+ *
+ * Return: void
+ */
+void display(char *string, int stream)
+{
+    int i = 0;
+
+    for (; string[i] != '\0'; i++)
+    {
+        write(stream, &string[i], 1);
+    }
+}
+
