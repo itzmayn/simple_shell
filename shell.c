@@ -148,7 +148,7 @@ int _atoi(char *s)
 		{
 			negative = 1;
 		}
-		
+
 		/* Check for a digit */
 		if (*s >= '0' && *s <= '9')
 		{
@@ -218,28 +218,6 @@ void handle_senario_a(void)
 		free(line);
 		exit(status);
 	}
-}
-
-/**
- * power - Calculates the power of a number
- * @base: The base number
- * @exponent: The exponent
- *
- * This function calculates the result of raising the base number to the given exponent.
- *
- * Return: The result of raising the base to the exponent
- */
-int power(int base, int exponent)
-{
-    int result = 1;
-
-    while (exponent > 0)
-    {
-        result *= base;
-        exponent--;
-    }
-
-    return result;
 }
 
 /**
@@ -389,3 +367,79 @@ void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
         }
     }
 }
+
+/**
+ * power - Calculates the power of a number
+ * @base: The base number
+ * @exponent: The exponent
+ *
+ * This function calculates the result of raising the base number to the given exponent.
+ *
+ * Return: The result of raising the base to the exponent
+ */
+int power(int base, int exponent)
+{
+    int result = 1;
+
+    while (exponent > 0)
+    {
+        result *= base;
+        exponent--;
+    }
+
+    return result;
+}
+
+/**
+ * ctrl_c_handler - Handles the signal raised by CTRL-C
+ * @signum: Signal number
+ *
+ * This function is the signal handler for the CTRL-C signal (SIGINT). It
+ * displays a new prompt when the signal is received, indicating that the
+ * shell is ready to accept a new command.
+ *
+ * Return: void
+ */
+void ctrl_c_handler(int signum)
+{
+    if (signum == SIGINT)
+    {
+        /* Display new prompt when CTRL-C signal is received */
+        display("\n($) ", STDIN_FILENO);
+    }
+}
+
+/**
+ * remove_comment - Removes/ignores everything after a '#' character
+ * @input: Input string to be modified
+ *
+ * This function removes any characters after the first '#' character in the
+ * input string. It is used to remove comments from the input, as anything
+ * after the '#' character is ignored.
+ *
+ * Return: void
+ */
+void remove_comment(char *input)
+{
+    int i = 0;
+
+    if (input[i] == '#')
+    {
+        /* If '#' is the first character, remove the entire line */
+        input[i] = '\0';
+    }
+    else
+    {
+        /* Find the first '#' character preceded by a space and remove the rest of the line */
+        while (input[i] != '\0')
+        {
+            if (input[i] == '#' && input[i - 1] == ' ')
+            {
+                break;
+            }
+            i++;
+        }
+        input[i] = '\0';
+    }
+}
+
