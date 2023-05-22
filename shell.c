@@ -445,6 +445,54 @@ char *_strtok_r(char *string, char *delim, char **save_ptr)
 }
 
 /**
+ * parse_command - Determines the type of the command
+ * @command: The command to be parsed
+ *
+ * This function analyzes the command to determine its type. It takes the command
+ * as an argument and checks for specific conditions to identify the type of the
+ * command. It checks for an external command by searching for the presence of
+ * a '/' character. It checks for internal commands by comparing the command to
+ * a list of predefined internal commands. If the command matches an internal
+ * command, it is considered an internal command. If the command is not an internal
+ * command, it checks if it exists in the PATH by using the confirm_loc() function.
+ * If a valid path is found, it is considered a path command. Otherwise, it is
+ * considered an invalid command.
+ *
+ * Return: Constant representing the type of the command
+ */
+int parse_command(char *command)
+{
+    int i;
+    char *internal_command[] = {"env", "exit", NULL};
+    char *path = NULL;
+
+    /* Check for external command by searching for '/' */
+    for (i = 0; command[i] != '\0'; i++)
+    {
+        if (command[i] == '/')
+            return (EXTERNAL_COMMAND);
+    }
+
+    /* Check for internal commands by comparing with predefined list */
+    for (i = 0; internal_command[i] != NULL; i++)
+    {
+        if (_strcmp(command, internal_command[i]) == 0)
+            return (INTERNAL_COMMAND);
+    }
+
+    /* Check if command exists in the PATH */
+    path = confirm_loc(command);
+    if (path != NULL)
+    {
+        free(path);
+        return (PATH_COMMAND);
+    }
+
+    /* Invalid command if not matched to any type */
+    return (INVALID_COMMAND);
+}
+
+/**
  * _realloc - Reallocate memory block
  * @ptr: Pointer to the memory previously allocated with malloc
  * @old_size: Size of the old memory block
