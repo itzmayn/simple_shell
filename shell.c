@@ -662,3 +662,24 @@ void _line_rm(char *str)
     str[i] = '\0';
 }
 
+/**
+ * _strcpy - Copies a string to another buffer
+ * @source: The source string to be copied
+ * @dest: The destination buffer to copy to
+ *
+ * This function copies the characters from the source string to the destination
+ * buffer until it reaches the null terminator. It assumes that the destination
+ * buffer has enough space to accommodate the entire source string.
+ *
+ * Return: void
+ */
+void _strcpy(char *source, char *dest)
+{
+    int i = 0;
+
+    for (; source[i] != '\0'; i++)
+    {
+        dest[i] = source[i];
+    }
+    dest[i] = '\0';
+}
