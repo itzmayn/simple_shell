@@ -880,3 +880,54 @@ void execute_command(char **tokenized_command, int command_type)
         status = 127;
     }
 }
+
+/**
+ * confirm_loc - Checks if a command is found in the PATH
+ * @command: Command to be checked
+ *
+ * Return: Path where the command is found, NULL if not found
+ */
+char *confirm_loc(char *command)
+{
+    char **path_array = NULL;
+    char *temp, *temp2, *path_cpy;
+    char *path = _getenv("PATH");
+    int i;
+
+    // Check if PATH environment variable is empty or not set
+    if (path == NULL || _strlen(path) == 0)
+        return (NULL);
+
+    // Create a copy of the PATH string
+    path_cpy = malloc(sizeof(*path_cpy) * (_strlen(path) + 1));
+    _strcpy(path, path_cpy);
+
+    // Tokenize the PATH string using ':' as the delimiter
+    path_array = tokenizer(path_cpy, ":");
+
+    // Iterate through each directory in the PATH
+    for (i = 0; path_array[i] != NULL; i++)
+    {
+        // Create the full path by concatenating directory and command
+        temp2 = _strcat(path_array[i], "/");
+        temp = _strcat(temp2, command);
+
+        // Check if the full path exists and is accessible
+        if (access(temp, F_OK) == 0)
+        {
+            free(temp2);
+            free(path_array);
+            free(path_cpy);
+            return (temp);
+        }
+
+        // Free the temporary strings for the next iteration
+        free(temp);
+        free(temp2);
+    }
+
+    // Free the allocated memory and return NULL if command is not found in any directory
+    free(path_cpy);
+    free(path_array);
+    return (NULL);
+}
