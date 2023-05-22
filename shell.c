@@ -288,6 +288,24 @@ void init(char **current_command, int type_command)
 }
 
 /**
+ *_strlen - counts string length
+ *@string: string to be counted
+ *
+ * Return: length of the string
+ */
+
+int _strlen(char *string)
+{
+	int len = 0;
+
+	if (string == NULL)
+		return (len);
+	for (; string[len] != '\0'; len++)
+		;
+	return (len);
+}
+
+/**
  * _strspn - Gets the length of a prefix substring
  * @str1: String to be searched
  * @str2: String to be used
