@@ -549,3 +549,37 @@ char *_strcat(char *destination, char *source)
 
     return (new_string);
 }
+
+/**
+ * _strchr - Locates a character in a string
+ * @s: The string to be searched
+ * @c: The character to be checked
+ *
+ * This function searches for the first occurrence of the character c in the
+ * string s. It returns a pointer to the location of the character if found,
+ * or NULL if the character is not found in the string.
+ *
+ * Return: A pointer to the first occurrence of c in s, or NULL if c is not found
+ */
+char *_strchr(char *s, char c)
+{
+    int i = 0; /* Counter for iterating over string s */
+
+    /* Iterate over s until the end of the string or until the character c is found */
+    for (; s[i] != c && s[i] != '\0'; i++)
+    {
+        /* Empty body, just incrementing i */
+    }
+
+    /* If c is found in s, return a pointer to the location in s where c was found */
+    if (s[i] == c)
+    {
+        return (s + i);
+    }
+    else
+    {
+        /* Otherwise, return NULL to indicate that c was not found in s */
+        return (NULL);
+    }
+}
+
