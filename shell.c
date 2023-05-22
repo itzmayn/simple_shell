@@ -14,6 +14,13 @@
 #define INTERNAL_COMMAND 2
 #define PATH_COMMAND 3
 #define INVALID_COMMAND -1
+#define minimum(x, y) (((x) < (y)) ? (x) : (y))
+
+typedef struct map
+{
+	char *command_name;
+	void (*func)(char **command);
+} mapping_func;
 
 /* Function Prototypes */
 void display(char *, int);
@@ -46,6 +53,8 @@ void quit(char **);
 extern void handle_senario_a(void);
 extern void init(char **current_command, int type_command);
 
+
+
 /* Global Variables */
 extern char **environ;
 extern char *line;
@@ -58,6 +67,8 @@ char **commands = NULL;
 char *line = NULL;
 char *shell_name = NULL;
 int status = 0;
+
+
 
 /**
  * main - Entry point of the shell program
@@ -162,6 +173,38 @@ int _atoi(char *s)
 
 	/* Return the result with a negative sign if necessary */
 	return negative ? -result : result;
+}
+
+/**
+ * _getenv - Gets the value of an environment variable
+ * @name: Name of the environment variable
+ *
+ * Return: The value of the variable as a string
+ */
+char *_getenv(char *name)
+{
+    char **my_environ;
+    char *pair_ptr;
+    char *name_cpy;
+
+    // Iterate through the environment variables
+    for (my_environ = environ; *my_environ != NULL; my_environ++)
+    {
+        // Check each variable for a match with the given name
+        for (pair_ptr = *my_environ, name_cpy = name;
+             *pair_ptr == *name_cpy; pair_ptr++, name_cpy++)
+        {
+            if (*pair_ptr == '=')
+                break;
+        }
+
+        // If a match is found, return the value of the variable
+        if ((*pair_ptr == '=') && (*name_cpy == '\0'))
+            return (pair_ptr + 1);
+    }
+
+    // Return NULL if the variable is not found
+    return (NULL);
 }
 
 /**
@@ -957,6 +1000,31 @@ char *confirm_loc(char *command)
 }
 
 /**
+ * get_func - Retrieves a function based on the command given and a mapping
+ * @command: String to check against the mapping
+ *
+ * Return: Pointer to the proper function, or NULL on failure
+ */
+void (*get_func(char *command))(char **)
+{
+    int i;
+    mapping_func mapping[] = {
+        {"env", env}, {"exit", quit}
+    };
+
+    // Iterate through the mapping to find a matching command
+    for (i = 0; i < 2; i++)
+    {
+        if (_strcmp(command, mapping[i].command_name) == 0)
+            return (mapping[i].func);
+    }
+
+    // Return NULL if no matching command is found
+    return (NULL);
+}
+
+
+/**
  * add - Adds two integers together
  * @a: The first integer to add
  * @b: The second integer to add
@@ -966,3 +1034,5 @@ int add(int a, int b)
 {
     return a + b;
 }
+
+
