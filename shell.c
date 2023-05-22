@@ -637,3 +637,28 @@ void display(char *string, int stream)
     }
 }
 
+/**
+ * _line_rm - Removes new line from a string
+ * @str: The string to be modified
+ *
+ * This function iterates over the characters of the string until it reaches
+ * the null terminator or encounters a new line character ('\n'). If a new line
+ * character is found, it replaces it with the null terminator, effectively
+ * removing the new line from the string.
+ *
+ * Return: void
+ */
+void _line_rm(char *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0')
+    {
+        if (str[i] == '\n')
+            break;
+        i++;
+    }
+
+    str[i] = '\0';
+}
+
