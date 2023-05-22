@@ -221,6 +221,34 @@ void handle_senario_a(void)
 }
 
 /**
+ * _strcmp - Compares two strings
+ * @first: First string to be compared
+ * @second: Second string to be compared
+ *
+ * This function compares the characters of two strings lexicographically.
+ *
+ * Return: An integer value indicating the difference between the strings.
+ *         - A negative value if the first string is less than the second.
+ *         - Zero if the strings are equal.
+ *         - A positive value if the first string is greater than the second.
+ */
+int _strcmp(char *first, char *second)
+{
+    int i = 0;
+
+    while (first[i] != '\0')
+    {
+        if (first[i] != second[i])
+        {
+            break;
+        }
+        i++;
+    }
+
+    return (first[i] - second[i]);
+}
+
+/**
  * init - Start executing the command
  * @current_command: The current command to execute
  * @type_command: The type of command
