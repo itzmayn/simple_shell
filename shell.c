@@ -834,3 +834,49 @@ void quit(char **tokenized_command)
         display("$: exit doesn't take more than one argument\n", STDERR_FILENO);
     }
 }
+
+/**
+ * execute_command - Executes a command based on its type
+ * @tokenized_command: Tokenized form of the command (e.g., {ls, -l, NULL})
+ * @command_type: Type of the command
+ *
+ * Return: void
+ */
+void execute_command(char **tokenized_command, int command_type)
+{
+    void (*func)(char **command);
+
+    if (command_type == EXTERNAL_COMMAND)
+    {
+        // Execute external command using execve
+        if (execve(tokenized_command[0], tokenized_command, NULL) == -1)
+        {
+            perror(_getenv("PWD"));
+            exit(2);
+        }
+    }
+    else if (command_type == PATH_COMMAND)
+    {
+        // Execute command using the confirmed location from PATH
+        if (execve(confirm_loc(tokenized_command[0]), tokenized_command, NULL) == -1)
+        {
+            perror(_getenv("PWD"));
+            exit(2);
+        }
+    }
+    else if (command_type == INTERNAL_COMMAND)
+    {
+        // Execute internal command by getting the corresponding function pointer
+        func = get_func(tokenized_command[0]);
+        func(tokenized_command);
+    }
+    else if (command_type == INVALID_COMMAND)
+    {
+        // Display an error message for invalid command and set the status to 127
+        display(shell_name, STDERR_FILENO);
+        display(": 1: ", STDERR_FILENO);
+        display(tokenized_command[0], STDERR_FILENO);
+        display(": not found\n", STDERR_FILENO);
+        status = 127;
+    }
+}
