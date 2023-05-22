@@ -701,3 +701,29 @@ void _strcpy(char *source, char *dest)
     }
     dest[i] = '\0';
 }
+
+/**
+ * env - Displays the current environment
+ * @tokenized_command: The command entered
+ *
+ * This function is used to display the current environment. It takes the
+ * tokenized command as an argument, although it is not used in this implementation.
+ * The function iterates over the `environ` array, which contains the environment
+ * variables, and displays each variable followed by a new line.
+ *
+ * Return: void
+ */
+void env(char **tokenized_command __attribute__((unused)))
+{
+    int i;
+
+    /* Iterate over the `environ` array */
+    for (i = 0; environ[i] != NULL; i++)
+    {
+        /* Display each environment variable */
+        display(environ[i], STDOUT_FILENO);
+
+        /* Add a new line after each variable */
+        display("\n", STDOUT_FILENO);
+    }
+}
