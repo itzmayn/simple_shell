@@ -392,6 +392,30 @@ char **tokenizer(char *input_string, char *delim)
 }
 
 /**
+ * subtract - Subtracts one integer from another
+ * @a: The integer to subtract from
+ * @b: The integer to subtract
+ *
+ * Return: The result of subtracting b from a
+ */
+int subtract(int a, int b)
+{
+    return a - b;
+}
+
+/**
+ * multiply - Multiplies two integers together
+ * @a: The first integer to multiply
+ * @b: The second integer to multiply
+ *
+ * Return: The product of a and b
+ */
+int multiply(int a, int b)
+{
+    return a * b;
+}
+
+/**
  * _strtok_r - Tokenizes a string
  * @string: The string to be tokenized
  * @delim: The delimiter used to tokenize the string
