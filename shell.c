@@ -341,6 +341,39 @@ int _strcspn(char *str1, char *str2)
 }
 
 /**
+ * tokenizer - Tokenizes input and stores it into an array
+ * @input_string: The input string to be parsed
+ * @delim: The delimiter to be used, must be a single character string
+ *
+ * This function tokenizes the input string based on the provided delimiter
+ * and stores the tokens in an array. The resulting array of tokens is returned.
+ *
+ * Return: An array of tokens
+ */
+char **tokenizer(char *input_string, char *delim)
+{
+    int num_delim = 0;
+    char **av = NULL;
+    char *token = NULL;
+    char *save_ptr = NULL;
+
+    token = _strtok_r(input_string, delim, &save_ptr);
+
+    while (token != NULL)
+    {
+        av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+        av[num_delim] = token;
+        token = _strtok_r(NULL, delim, &save_ptr);
+        num_delim++;
+    }
+
+    av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+    av[num_delim] = NULL;
+
+    return (av);
+}
+
+/**
  * _strtok_r - Tokenizes a string
  * @string: The string to be tokenized
  * @delim: The delimiter used to tokenize the string
