@@ -471,3 +471,28 @@ void remove_comment(char *input)
     }
 }
 
+/**
+ * _strcat - Concatenates two strings
+ * @destination: Pointer to the string to be concatenated
+ * @source: Pointer to the string to concatenate
+ *
+ * This function appends the characters of the source string to the
+ * destination string, overwriting the terminating null byte ('\0') at
+ * the end of the destination, and then adds a new terminating null
+ * byte. The resulting concatenated string is returned.
+ *
+ * Return: Pointer to the resulting concatenated string.
+ */
+char *_strcat(char *destination, char *source)
+{
+    char *new_string = NULL;
+    int len_dest = _strlen(destination);
+    int len_source = _strlen(source);
+
+    new_string = malloc(sizeof(*new_string) * (len_dest + len_source + 1));
+    _strcpy(destination, new_string);
+    _strcpy(source, new_string + len_dest);
+    new_string[len_dest + len_source] = '\0';
+
+    return (new_string);
+}
