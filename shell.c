@@ -288,6 +288,59 @@ void init(char **current_command, int type_command)
 }
 
 /**
+ * _strspn - Gets the length of a prefix substring
+ * @str1: String to be searched
+ * @str2: String to be used
+ *
+ * This function calculates the length of the initial segment of str1
+ * consisting of only the characters that appear in str2. It searches for
+ * matches between str1 and str2 and returns the number of matching bytes.
+ *
+ * Return: Number of bytes in the initial segment of str1 that are part of str2.
+ */
+int _strspn(char *str1, char *str2)
+{
+    int i = 0;
+    int match = 0;
+
+    while (str1[i] != '\0')
+    {
+        if (_strchr(str2, str1[i]) == NULL)
+            break;
+        match++;
+        i++;
+    }
+
+    return match;
+}
+
+/**
+ * _strcspn - Computes the segment of str1 that consists of characters not in str2
+ * @str1: String to be searched
+ * @str2: String to be used
+ *
+ * This function calculates the index at which a character in str1 exists in str2.
+ * It searches for matches between str1 and str2 and returns the length of the
+ * segment of str1 that contains characters not present in str2.
+ *
+ * Return: Index at which a character in str1 exists in str2.
+ */
+int _strcspn(char *str1, char *str2)
+{
+    int len = 0;
+    int i;
+
+    for (i = 0; str1[i] != '\0'; i++)
+    {
+        if (_strchr(str2, str1[i]) != NULL)
+            break;
+        len++;
+    }
+
+    return len;
+}
+
+/**
  * _strtok_r - Tokenizes a string
  * @string: The string to be tokenized
  * @delim: The delimiter used to tokenize the string
