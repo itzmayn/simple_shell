@@ -333,3 +333,59 @@ char *_strtok_r(char *string, char *delim, char **save_ptr)
 	*save_ptr = finish + 1;
 	return (string);
 }
+
+/**
+ * _realloc - Reallocate memory block
+ * @ptr: Pointer to the memory previously allocated with malloc
+ * @old_size: Size of the old memory block
+ * @new_size: Size of the new memory block to be allocated
+ *
+ * This function reallocates a memory block, pointed to by ptr, to a new size
+ * specified by new_size. It preserves the data in the old memory block as much
+ * as possible.
+ *
+ * Return: Pointer to the address of the new memory block
+ */
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
+{
+    void *temp_block;
+    unsigned int i;
+
+    if (ptr == NULL)
+    {
+        /* If ptr is NULL, equivalent to malloc(new_size) */
+        temp_block = malloc(new_size);
+        return (temp_block);
+    }
+    else if (new_size == old_size)
+    {
+        /* If new_size is equal to old_size, return ptr without reallocation */
+        return (ptr);
+    }
+    else if (new_size == 0 && ptr != NULL)
+    {
+        /* If new_size is 0 and ptr is not NULL, equivalent to free(ptr) */
+        free(ptr);
+        return (NULL);
+    }
+    else
+    {
+        /* Allocate a new memory block of size new_size */
+        temp_block = malloc(new_size);
+        if (temp_block != NULL)
+        {
+            /* Copy the data from the old memory block to the new memory block */
+            for (i = 0; i < minimum(old_size, new_size); i++)
+            {
+                *((char *)temp_block + i) = *((char *)ptr + i);
+            }
+            free(ptr);
+            return (temp_block);
+        }
+        else
+        {
+            /* Allocation failed, return NULL */
+            return (NULL);
+        }
+    }
+}
