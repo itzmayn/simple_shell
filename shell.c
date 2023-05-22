@@ -727,3 +727,62 @@ void env(char **tokenized_command __attribute__((unused)))
         display("\n", STDOUT_FILENO);
     }
 }
+
+/**
+ * quit - Exits the shell
+ * @tokenized_command: The command entered
+ *
+ * This function is used to exit the shell. It takes the tokenized command as an
+ * argument. If the command has no arguments, the function frees allocated memory
+ * and exits the shell with the current status. If the command has one argument,
+ * it is expected to be an exit status. The function converts the argument to an
+ * integer and exits the shell with that status. If the command has more than one
+ * argument, an error message is displayed.
+ *
+ * Return: void
+ */
+void quit(char **tokenized_command)
+{
+    int num_token = 0, arg;
+
+    /* Count the number of tokens in the command */
+    for (; tokenized_command[num_token] != NULL; num_token++)
+        ;
+
+    if (num_token == 1)
+    {
+        /* Free allocated memory and exit with current status */
+        free(tokenized_command);
+        free(line);
+        free(commands);
+        exit(status);
+    }
+    else if (num_token == 2)
+    {
+        /* Convert the argument to an integer */
+        arg = _atoi(tokenized_command[1]);
+
+        if (arg == -1)
+        {
+            /* Display an error message for an illegal number */
+            display(shell_name, STDERR_FILENO);
+            display(": 1: exit: Illegal number: ", STDERR_FILENO);
+            display(tokenized_command[1], STDERR_FILENO);
+            display("\n", STDERR_FILENO);
+            status = 2;
+        }
+        else
+        {
+            /* Free allocated memory and exit with the specified status */
+            free(line);
+            free(tokenized_command);
+            free(commands);
+            exit(arg);
+        }
+    }
+    else
+    {
+        /* Display an error message for too many arguments */
+        display("$: exit doesn't take more than one argument\n", STDERR_FILENO);
+    }
+}
