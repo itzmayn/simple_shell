@@ -129,6 +129,42 @@ int main(int argc __attribute__((unused)), char **argv)
 }
 
 /**
+ * _atoi - Converts a string to an integer.
+ *
+ * @s: The string to convert to an integer.
+ *
+ * Return: The integer value of the string.
+ */
+int _atoi(char *s)
+{
+	unsigned int result = 0; /* The resulting integer */
+	unsigned int negative = 0; /* Flag to indicate if the number is negative */
+
+	/* Loop through the string */
+	while (*s)
+	{
+		/* Check for a negative sign at the beginning of the string */
+		if (*s == '-')
+		{
+			negative = 1;
+		}
+		
+		/* Check for a digit */
+		if (*s >= '0' && *s <= '9')
+		{
+			/* Shift the current result to the left by one digit and add the current digit */
+			result = result * 10 + (*s - '0');
+		}
+
+		/* Move to the next character in the string */
+		s++;
+	}
+
+	/* Return the result with a negative sign if necessary */
+	return negative ? -result : result;
+}
+
+/**
  * handle_senario_a - Handles a non-interactive mode
  *
  * This function is responsible for handling a scenario where the shell
