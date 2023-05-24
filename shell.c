@@ -68,185 +68,74 @@ char *line = NULL;
 char *shell_name = NULL;
 int status = 0;
 
+
 /**
- * main - the main shell code
- * @argc: number of arguments passed
- * @argv: program arguments to be parsed
+ * main - Entry point of the shell program
+ * @argc: The number of command-line arguments (unused)
+ * @argv: Array of command-line arguments
  *
- * applies the functions in utils and helpers
- * implements EOF
- * prints error on Failure
- * Return: 0 on success
+ * Return: The status code of the shell program
  */
-
-
 int main(int argc __attribute__((unused)), char **argv)
 {
 	char **current_command = NULL;
 	int i, type_command = 0;
 	size_t n = 0;
 
+	/* Register signal handler for Ctrl+C */
 	signal(SIGINT, ctrl_c_handler);
+
+	/* Set the shell name */
 	shell_name = argv[0];
+
 	while (1)
 	{
+		/* Handle scenario A */
 		handle_senario_a();
+
+		/* Display the shell prompt */
 		display(" ($) ", STDOUT_FILENO);
+
+		/* Read the command from the user */
 		if (getline(&line, &n, stdin) == -1)
 		{
 			free(line);
 			exit(status);
 		}
-			_line_rm(line);
-			remove_comment(line);
-			commands = tokenizer(line, ";");
+
+		/* Remove leading/trailing whitespaces and remove comments */
+		_line_rm(line);
+		remove_comment(line);
+
+		/* Tokenize the command by semicolon */
+		commands = tokenizer(line, ";");
 
 		for (i = 0; commands[i] != NULL; i++)
 		{
+			/* Tokenize each individual command */
 			current_command = tokenizer(commands[i], " ");
+
 			if (current_command[0] == NULL)
 			{
 				free(current_command);
 				break;
 			}
+
+			/* Determine the type of command */
 			type_command = parse_command(current_command[0]);
 
-			/* init -   */
+			/* Initialize and execute the command */
 			init(current_command, type_command);
+
 			free(current_command);
 		}
+
 		free(commands);
 	}
+
 	free(line);
 
 	return (status);
-}
-
-/**
- * handle_senario_a - handles a mode that is not interactive
- *
- * Return: void
- */
-
-void handle_senario_a(void)
-{
-	char **current_command = NULL;
-	int i, type_command = 0;
-	size_t n = 0;
-
-	if (!(isatty(STDIN_FILENO)))
-	{
-		while (getline(&line, &n, stdin) != -1)
-		{
-			_line_rm(line);
-			remove_comment(line);
-			commands = tokenizer(line, ";");
-			for (i = 0; commands[i] != NULL; i++)
-			{
-				current_command = tokenizer(commands[i], " ");
-				if (current_command[0] == NULL)
-				{
-					free(current_command);
-					break;
-				}
-				type_command = parse_command(current_command[0]);
-				init(current_command, type_command);
-				free(current_command);
-			}
-			free(commands);
-		}
-		free(line);
-		exit(status);
-	}
-}
-
-/**
- * power - Raises a number to a given power
- * @base: The base number
- * @exponent: The exponent to raise the base to
- *
- * Return: The result of raising the base to the exponent
- */
-int power(int base, int exponent)
-{
-    int result = 1;
-    while (exponent > 0)
-    {
-        result *= base;
-        exponent--;
-    }
-    return result;
-}
-
-/**
- * init - starts executing everything
- * @current_command: try to check current token
- * @type_command: parse token
- *
- * Return: void function
- */
-
-void init(char **current_command, int type_command)
-{
-	pid_t PID;
-
-	if (type_command == EXTERNAL_COMMAND || type_command == PATH_COMMAND)
-	{
-		PID = fork();
-		if (PID == 0)
-			execute_command(current_command, type_command);
-		else
-		{
-			waitpid(PID, &status, 0);
-			status >>= 8;
-		}
-	}
-	else
-		execute_command(current_command, type_command);
-}
-
-/**
- * _strtok_r - tokenizes a string
- * @string: string to be tokenized
- * @delim: delimiter to be used to tokenize the string
- * @save_ptr: pointer to be used to keep track of the next token
- *
- * This function takes a string and a delimiter, and returns the next token
- * from the string. The `save_ptr` argument is used to keep track of the next
- * token. This allows the caller to tokenize multiple strings at the same time.
- *
- * Return: The next available token, or NULL if there are no more tokens.
- */
-char *_strtok_r(char *string, char *delim, char **save_ptr)
-{
-	char *finish;
-
-	if (string == NULL)
-		string = *save_ptr;
-
-	if (*string == '\0')
-	{
-		*save_ptr = string;
-		return (NULL);
-	}
-
-	string += _strspn(string, delim);
-	if (*string == '\0')
-	{
-		*save_ptr = string;
-		return (NULL);
-	}
-
-	finish = string + _strcspn(string, delim);
-	if (*finish == '\0')
-	{
-		*save_ptr = finish;
-		return (string);
-	}
-
-	*finish = '\0';
-	*save_ptr = finish + 1;
-	return (string);
 }
 
 /**
@@ -266,7 +155,9 @@ int _atoi(char *s)
 	{
 		/* Check for a negative sign at the beginning of the string */
 		if (*s == '-')
+		{
 			negative = 1;
+		}
 
 		/* Check for a digit */
 		if (*s >= '0' && *s <= '9')
@@ -283,273 +174,159 @@ int _atoi(char *s)
 	return negative ? -result : result;
 }
 
+/**
+ * _getenv - Gets the value of an environment variable
+ * @name: Name of the environment variable
+ *
+ * Return: The value of the variable as a string
+ */
+char *_getenv(char *name)
+{
+    char **my_environ;
+    char *pair_ptr;
+    char *name_cpy;
+
+    // Iterate through the environment variables
+    for (my_environ = environ; *my_environ != NULL; my_environ++)
+    {
+        // Check each variable for a match with the given name
+        for (pair_ptr = *my_environ, name_cpy = name;
+             *pair_ptr == *name_cpy; pair_ptr++, name_cpy++)
+        {
+            if (*pair_ptr == '=')
+                break;
+        }
+
+        // If a match is found, return the value of the variable
+        if ((*pair_ptr == '=') && (*name_cpy == '\0'))
+            return (pair_ptr + 1);
+    }
+
+    // Return NULL if the variable is not found
+    return (NULL);
+}
 
 /**
- * _realloc - reallocates a memory block
- * @ptr: pointer to the memory previously allocated with a call to malloc
- * @old_size: size of ptr
- * @new_size: size of the new memory to be allocated
+ * handle_senario_a - Handles a non-interactive mode
  *
- * Return: pointer to the address of the new memory block
+ * This function is responsible for handling a scenario where the shell
+ * is not running in interactive mode. It reads commands from the standard input
+ * and executes them.
+ *
+ * Return: void
  */
-void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
+void handle_senario_a(void)
 {
-	void *temp_block;
-	unsigned int i;
+	char **current_command = NULL;
+	int i, type_command = 0;
+	size_t n = 0;
 
-	if (ptr == NULL)
+	/* Check if the standard input is not a terminal */
+	if (!(isatty(STDIN_FILENO)))
 	{
-		temp_block = malloc(new_size);
-		return (temp_block);
-	}
-	else if (new_size == old_size)
-		return (ptr);
-	else if (new_size == 0 && ptr != NULL)
-	{
-		free(ptr);
-		return (NULL);
-	}
-	else
-	{
-		temp_block = malloc(new_size);
-		if (temp_block != NULL)
+		/* Read commands from the standard input */
+		while (getline(&line, &n, stdin) != -1)
 		{
-			for (i = 0; i < minimum(old_size, new_size); i++)
-				*((char *)temp_block + i) = *((char *)ptr + i);
-			free(ptr);
-			return (temp_block);
+			/* Remove leading/trailing whitespaces and remove comments */
+			_line_rm(line);
+			remove_comment(line);
+
+			/* Tokenize the command by semicolon */
+			commands = tokenizer(line, ";");
+
+			for (i = 0; commands[i] != NULL; i++)
+			{
+				/* Tokenize each individual command */
+				current_command = tokenizer(commands[i], " ");
+
+				if (current_command[0] == NULL)
+				{
+					free(current_command);
+					break;
+				}
+
+				/* Determine the type of command */
+				type_command = parse_command(current_command[0]);
+
+				/* Initialize and execute the command */
+				init(current_command, type_command);
+
+				free(current_command);
+			}
+
+			free(commands);
 		}
-		else
-			return (NULL);
 
+		free(line);
+		exit(status);
 	}
 }
 
 /**
- * ctrl_c_handler - handles the signal raised by CTRL-C
- * @signum: signal number
+ * _strcmp - Compares two strings
+ * @first: First string to be compared
+ * @second: Second string to be compared
  *
- * Return: void
- */
-void ctrl_c_handler(int signum)
-{
-	if (signum == SIGINT)
-		display("\n($) ", STDIN_FILENO);
-}
-
-/**
- * remove_comment - removes/ignores everything after a '#' char
- * @input: input to be used
+ * This function compares the characters of two strings lexicographically.
  *
- * Return: void
+ * Return: An integer value indicating the difference between the strings.
+ *         - A negative value if the first string is less than the second.
+ *         - Zero if the strings are equal.
+ *         - A positive value if the first string is greater than the second.
  */
-void remove_comment(char *input)
-{
-	int i = 0;
-
-	if (input[i] == '#')
-		input[i] = '\0';
-	while (input[i] != '\0')
-	{
-		if (input[i] == '#' && input[i - 1] == ' ')
-			break;
-		i++;
-	}
-	input[i] = '\0';
-}
-
-/**
- *_strcmp - compare two strings
- *@first: first string to be compared
- *@second: second string to be compared
- *
- * Return: difference of the two strings
- */
-
 int _strcmp(char *first, char *second)
 {
-	int i = 0;
+    int i = 0;
 
-	while (first[i] != '\0')
-	{
-		if (first[i] != second[i])
-			break;
-		i++;
-	}
-	return (first[i] - second[i]);
+    while (first[i] != '\0')
+    {
+        if (first[i] != second[i])
+        {
+            break;
+        }
+        i++;
+    }
+
+    return (first[i] - second[i]);
 }
 
 /**
- * _strcat - Concatenates two strings
+ * init - Start executing the command
+ * @current_command: The current command to execute
+ * @type_command: The type of command
  *
- * @destination: A pointer to the string to be concatenated
- * @source: A pointer to the string to concatenate
- *
- * Return: A pointer to the resulting concatenated string
- */
-char *_strcat(char *destination, char *source)
-{
-	char *new_string =  NULL;
-	int len_dest = _strlen(destination);
-	int len_source = _strlen(source);
-
-	new_string = malloc(sizeof(*new_string) * (len_dest + len_source + 1));
-	_strcpy(destination, new_string);
-	_strcpy(source, new_string + len_dest);
-	new_string[len_dest + len_source] = '\0';
-	return (new_string);
-}
-
-/**
- *_strspn - gets the length of a prefix substring
- *@str1: string to be searched
- *@str2: string to be used
- *
- *Return: number of bytes in the initial segment of 5 which are part of accept
- */
-
-int _strspn(char *str1, char *str2)
-{
-	int i = 0;
-	int match = 0;
-
-	while (str1[i] != '\0')
-	{
-		if (_strchr(str2, str1[i]) == NULL)
-			break;
-		match++;
-		i++;
-	}
-	return (match);
-}
-
-/**
- *_strcspn - computes segment of str1 which consists of characters not in str2
- *@str1: string to be searched
- *@str2: string to be used
- *
- *Return: index at which a char in str1 exists in str2
- */
-
-
-int _strcspn(char *str1, char *str2)
-{
-	int len = 0, i;
-
-	for (i = 0; str1[i] != '\0'; i++)
-	{
-		if (_strchr(str2, str1[i]) != NULL)
-			break;
-		len++;
-	}
-	return (len);
-}
-
-/**
- * _strchr - Locates a character in a string
- * @s: The string to be searched
- * @c: The character to be checked
- *
- * Return: A pointer to the first occurrence of c in s, or NULL if c is not found
- */
-char *_strchr(char *s, char c)
-{
-	int i = 0; /* Counter for iterating over string s */
-
-	/* Iterate over s until the end of the string or until the character c is found */
-	for (; s[i] != c && s[i] != '\0'; i++)
-		;
-
-	/* If c is found in s, return a pointer to the location in s where c was found */
-	if (s[i] == c)
-		return (s + i);
-	else /* Otherwise, return NULL to indicate that c was not found in s */
-		return (NULL);
-}
-
-
-/**
- * tokenizer - tokenizes input and stores it into an array
- *@input_string: input to be parsed
- *@delim: delimiter to be used, needs to be one character string
- *
- *Return: array of tokens
- */
-
-char **tokenizer(char *input_string, char *delim)
-{
-	int num_delim = 0;
-	char **av = NULL;
-	char *token = NULL;
-	char *save_ptr = NULL;
-
-	token = _strtok_r(input_string, delim, &save_ptr);
-
-	while (token != NULL)
-	{
-		av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
-		av[num_delim] = token;
-		token = _strtok_r(NULL, delim, &save_ptr);
-		num_delim++;
-	}
-
-	av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
-	av[num_delim] = NULL;
-
-	return (av);
-}
-
-/**
- *display - displays a string to stdout
- *@string: string to be displayed
- *@stream: stream to display out to
- *
- *Return: void, return nothing
- */
-void display(char *string, int stream)
-{
-	int i = 0;
-
-	for (; string[i] != '\0'; i++)
-		write(stream, &string[i], 1);
-}
-
-/**
- *_line_rm - removes new line from a string
- *@str: string to be used
- *
- *
- *Return: void
- */
-
-void _line_rm(char *str)
-{
-	int i = 0;
-
-	while (str[i] != '\0')
-	{
-		if (str[i] == '\n')
-			break;
-		i++;
-	}
-	str[i] = '\0';
-}
-
-/**
- *_strcpy - copies a string to another buffer
- *@source: source to copy from
- *@dest: destination to copy to
+ * This function is responsible for initiating the execution of the command.
+ * If the command is an external command or a command in the PATH, it creates
+ * a child process to execute the command. Otherwise, it directly executes
+ * the command.
  *
  * Return: void
  */
-
-void _strcpy(char *source, char *dest)
+void init(char **current_command, int type_command)
 {
-	int i = 0;
+    pid_t PID;
 
-	for (; source[i] != '\0'; i++)
-		dest[i] = source[i];
-	dest[i] = '\0';
+    if (type_command == EXTERNAL_COMMAND || type_command == PATH_COMMAND)
+    {
+        /* Create a child process to execute the command */
+        PID = fork();
+        if (PID == 0)
+        {
+            /* Child process executes the command */
+            execute_command(current_command, type_command);
+        }
+        else
+        {
+            /* Parent process waits for the child to finish executing */
+            waitpid(PID, &status, 0);
+            status >>= 8;
+        }
+    }
+    else
+    {
+        /* Execute the command directly */
+        execute_command(current_command, type_command);
+    }
 }
 
 /**
@@ -570,190 +347,90 @@ int _strlen(char *string)
 	return (len);
 }
 
-
-
 /**
- *env - displays the current_environnement
- *@tokenized_command: command entered
+ * _strspn - Gets the length of a prefix substring
+ * @str1: String to be searched
+ * @str2: String to be used
  *
- *Return: void
+ * This function calculates the length of the initial segment of str1
+ * consisting of only the characters that appear in str2. It searches for
+ * matches between str1 and str2 and returns the number of matching bytes.
+ *
+ * Return: Number of bytes in the initial segment of str1 that are part of str2.
  */
-
-void env(char **tokenized_command __attribute__((unused)))
+int _strspn(char *str1, char *str2)
 {
-	int i;
+    int i = 0;
+    int match = 0;
 
-	for (i = 0; environ[i] != NULL; i++)
-	{
-		display(environ[i], STDOUT_FILENO);
-		display("\n", STDOUT_FILENO);
-	}
+    while (str1[i] != '\0')
+    {
+        if (_strchr(str2, str1[i]) == NULL)
+            break;
+        match++;
+        i++;
+    }
+
+    return match;
 }
 
 /**
- * quit - exits the shell
- * @tokenized_command: command entered
+ * _strcspn - Computes the segment of str1 that consists of characters not in str2
+ * @str1: String to be searched
+ * @str2: String to be used
  *
- * Return: void
- */
-
-void quit(char **tokenized_command)
-{
-	int num_token = 0, arg;
-
-	for (; tokenized_command[num_token] != NULL; num_token++)
-		;
-	if (num_token == 1)
-	{
-		free(tokenized_command);
-		free(line);
-		free(commands);
-		exit(status);
-	}
-	else if (num_token == 2)
-	{
-		arg = _atoi(tokenized_command[1]);
-		if (arg == -1)
-		{
-			display(shell_name, STDERR_FILENO);
-			display(": 1: exit: Illegal number: ", STDERR_FILENO);
-			display(tokenized_command[1], STDERR_FILENO);
-			display("\n", STDERR_FILENO);
-			status = 2;
-		}
-		else
-		{
-			free(line);
-			free(tokenized_command);
-			free(commands);
-			exit(arg);
-		}
-	}
-	else
-		display("$: exit doesn't take more than one argument\n", STDERR_FILENO);
-}
-
-/** parse_command - determines the type of the command
- * @command: command to be parsed
+ * This function calculates the index at which a character in str1 exists in str2.
+ * It searches for matches between str1 and str2 and returns the length of the
+ * segment of str1 that contains characters not present in str2.
  *
- * Return: constant representing the type of the command
+ * Return: Index at which a character in str1 exists in str2.
  */
-
-int parse_command(char *command)
+int _strcspn(char *str1, char *str2)
 {
-	int i;
-	char *internal_command[] = {"env", "exit", NULL};
-	char *path = NULL;
+    int len = 0;
+    int i;
 
-	for (i = 0; command[i] != '\0'; i++)
-	{
-		if (command[i] == '/')
-			return (EXTERNAL_COMMAND);
-	}
-	for (i = 0; internal_command[i] != NULL; i++)
-	{
-		if (_strcmp(command, internal_command[i]) == 0)
-			return (INTERNAL_COMMAND);
-	}
-	/* @confirm_loc - checks if a command is found in the PATH */
-	path = confirm_loc(command);
-	if (path != NULL)
-	{
-		free(path);
-		return (PATH_COMMAND);
-	}
+    for (i = 0; str1[i] != '\0'; i++)
+    {
+        if (_strchr(str2, str1[i]) != NULL)
+            break;
+        len++;
+    }
 
-	return (INVALID_COMMAND);
+    return len;
 }
 
 /**
- * execute_command - executes a command based on it's type
- * @tokenized_command: tokenized form of the command (ls -l == {ls, -l, NULL})
- * @command_type: type of the command
+ * tokenizer - Tokenizes input and stores it into an array
+ * @input_string: The input string to be parsed
+ * @delim: The delimiter to be used, must be a single character string
  *
- * Return: void
- */
-void execute_command(char **tokenized_command, int command_type)
-{
-	void (*func)(char **command);
-
-	if (command_type == EXTERNAL_COMMAND)
-	{
-		if (execve(tokenized_command[0], tokenized_command, NULL) == -1)
-		{
-			perror(_getenv("PWD"));
-			exit(2);
-		}
-	}
-	if (command_type == PATH_COMMAND)
-	{
-		if (execve(confirm_loc(tokenized_command[0]), tokenized_command, NULL) == -1)
-		{
-			perror(_getenv("PWD"));
-			exit(2);
-		}
-	}
-	if (command_type == INTERNAL_COMMAND)
-	{
-		func = get_func(tokenized_command[0]);
-		func(tokenized_command);
-	}
-	if (command_type == INVALID_COMMAND)
-	{
-		display(shell_name, STDERR_FILENO);
-		display(": 1: ", STDERR_FILENO);
-		display(tokenized_command[0], STDERR_FILENO);
-		display(": not found\n", STDERR_FILENO);
-		status = 127;
-	}
-}
-
-/**
- * confirm_loc - checks if a command is found in the PATH
- * @command: command to be used
+ * This function tokenizes the input string based on the provided delimiter
+ * and stores the tokens in an array. The resulting array of tokens is returned.
  *
- * Return: path where the command is found in, NULL if not found
+ * Return: An array of tokens
  */
-char *confirm_loc(char *command)
+char **tokenizer(char *input_string, char *delim)
 {
-	char **path_array = NULL;
-	char *temp, *temp2, *path_cpy;
-	char *path = _getenv("PATH");
-	int i;
+    int num_delim = 0;
+    char **av = NULL;
+    char *token = NULL;
+    char *save_ptr = NULL;
 
-	if (path == NULL || _strlen(path) == 0)
-		return (NULL);
-	path_cpy = malloc(sizeof(*path_cpy) * (_strlen(path) + 1));
-	_strcpy(path, path_cpy);
-	path_array = tokenizer(path_cpy, ":");
-	for (i = 0; path_array[i] != NULL; i++)
-	{
-		temp2 = _strcat(path_array[i], "/");
-		temp = _strcat(temp2, command);
-		if (access(temp, F_OK) == 0)
-		{
-			free(temp2);
-			free(path_array);
-			free(path_cpy);
-			return (temp);
-		}
-		free(temp);
-		free(temp2);
-	}
-	free(path_cpy);
-	free(path_array);
-	return (NULL);
-}
-/**
- * add - Adds two integers together
- * @a: The first integer to add
- * @b: The second integer to add
- *
- * Return: The sum of a and b
- */
-int add(int a, int b)
-{
-    return a + b;
+    token = _strtok_r(input_string, delim, &save_ptr);
+
+    while (token != NULL)
+    {
+        av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+        av[num_delim] = token;
+        token = _strtok_r(NULL, delim, &save_ptr);
+        num_delim++;
+    }
+
+    av = _realloc(av, sizeof(*av) * num_delim, sizeof(*av) * (num_delim + 1));
+    av[num_delim] = NULL;
+
+    return (av);
 }
 
 /**
@@ -781,47 +458,580 @@ int multiply(int a, int b)
 }
 
 /**
- * get_func - retrieves a function based on the command given and a mapping
- * @command: string to check against the mapping
+ * _strtok_r - Tokenizes a string
+ * @string: The string to be tokenized
+ * @delim: The delimiter used to tokenize the string
+ * @save_ptr: Pointer to keep track of the next token
  *
- * Return: pointer to the proper function, or null on fail
+ * This function takes a string and a delimiter and returns the next token
+ * from the string. The `save_ptr` argument is used to keep track of the next
+ * token, allowing the caller to tokenize multiple strings simultaneously.
+ *
+ * Return: The next available token, or NULL if there are no more tokens.
  */
-void (*get_func(char *command))(char **)
+char *_strtok_r(char *string, char *delim, char **save_ptr)
 {
-	int i;
-	mapping_func mapping[] = {
-		{"env", env}, {"exit", quit}
-	};
+	char *finish;
 
-	for (i = 0; i < 2; i++)
+	/* If string is NULL, use the save_ptr */
+	if (string == NULL)
+		string = *save_ptr;
+
+	/* If the current position is at the end of the string, no more tokens */
+	if (*string == '\0')
 	{
-		if (_strcmp(command, mapping[i].command_name) == 0)
-			return (mapping[i].func);
+		*save_ptr = string;
+		return (NULL);
 	}
-	return (NULL);
+
+	/* Skip leading delimiters */
+	string += _strspn(string, delim);
+
+	/* If the current position is at the end of the string, no more tokens */
+	if (*string == '\0')
+	{
+		*save_ptr = string;
+		return (NULL);
+	}
+
+	/* Find the end of the token */
+	finish = string + _strcspn(string, delim);
+
+	/* If the end of the string is reached, update save_ptr and return the token */
+	if (*finish == '\0')
+	{
+		*save_ptr = finish;
+		return (string);
+	}
+
+	/* Null-terminate the token, update save_ptr, and return the token */
+	*finish = '\0';
+	*save_ptr = finish + 1;
+	return (string);
 }
 
 /**
- * _getenv - gets the value of an environment variable
- * @name: name of the environment variable
- * Return: the value of the variable as a string
+ * parse_command - Determines the type of the command
+ * @command: The command to be parsed
+ *
+ * This function analyzes the command to determine its type. It takes the command
+ * as an argument and checks for specific conditions to identify the type of the
+ * command. It checks for an external command by searching for the presence of
+ * a '/' character. It checks for internal commands by comparing the command to
+ * a list of predefined internal commands. If the command matches an internal
+ * command, it is considered an internal command. If the command is not an internal
+ * command, it checks if it exists in the PATH by using the confirm_loc() function.
+ * If a valid path is found, it is considered a path command. Otherwise, it is
+ * considered an invalid command.
+ *
+ * Return: Constant representing the type of the command
  */
-char *_getenv(char *name)
+int parse_command(char *command)
 {
-	char **my_environ;
-	char *pair_ptr;
-	char *name_cpy;
+    int i;
+    char *internal_command[] = {"env", "exit", NULL};
+    char *path = NULL;
 
-	for (my_environ = environ; *my_environ != NULL; my_environ++)
-	{
-		for (pair_ptr = *my_environ, name_cpy = name;
-		     *pair_ptr == *name_cpy; pair_ptr++, name_cpy++)
-		{
-			if (*pair_ptr == '=')
-				break;
-		}
-		if ((*pair_ptr == '=') && (*name_cpy == '\0'))
-			return (pair_ptr + 1);
-	}
-	return (NULL);
+    /* Check for external command by searching for '/' */
+    for (i = 0; command[i] != '\0'; i++)
+    {
+        if (command[i] == '/')
+            return (EXTERNAL_COMMAND);
+    }
+
+    /* Check for internal commands by comparing with predefined list */
+    for (i = 0; internal_command[i] != NULL; i++)
+    {
+        if (_strcmp(command, internal_command[i]) == 0)
+            return (INTERNAL_COMMAND);
+    }
+
+    /* Check if command exists in the PATH */
+    path = confirm_loc(command);
+    if (path != NULL)
+    {
+        free(path);
+        return (PATH_COMMAND);
+    }
+
+    /* Invalid command if not matched to any type */
+    return (INVALID_COMMAND);
 }
+
+/**
+ * _realloc - Reallocate memory block
+ * @ptr: Pointer to the memory previously allocated with malloc
+ * @old_size: Size of the old memory block
+ * @new_size: Size of the new memory block to be allocated
+ *
+ * This function reallocates a memory block, pointed to by ptr, to a new size
+ * specified by new_size. It preserves the data in the old memory block as much
+ * as possible.
+ *
+ * Return: Pointer to the address of the new memory block
+ */
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
+{
+    void *temp_block;
+    unsigned int i;
+
+    if (ptr == NULL)
+    {
+        /* If ptr is NULL, equivalent to malloc(new_size) */
+        temp_block = malloc(new_size);
+        return (temp_block);
+    }
+    else if (new_size == old_size)
+    {
+        /* If new_size is equal to old_size, return ptr without reallocation */
+        return (ptr);
+    }
+    else if (new_size == 0 && ptr != NULL)
+    {
+        /* If new_size is 0 and ptr is not NULL, equivalent to free(ptr) */
+        free(ptr);
+        return (NULL);
+    }
+    else
+    {
+        /* Allocate a new memory block of size new_size */
+        temp_block = malloc(new_size);
+        if (temp_block != NULL)
+        {
+            /* Copy the data from the old memory block to the new memory block */
+            for (i = 0; i < minimum(old_size, new_size); i++)
+            {
+                *((char *)temp_block + i) = *((char *)ptr + i);
+            }
+            free(ptr);
+            return (temp_block);
+        }
+        else
+        {
+            /* Allocation failed, return NULL */
+            return (NULL);
+        }
+    }
+}
+
+/**
+ * power - Calculates the power of a number
+ * @base: The base number
+ * @exponent: The exponent
+ *
+ * This function calculates the result of raising the base number to the given exponent.
+ *
+ * Return: The result of raising the base to the exponent
+ */
+int power(int base, int exponent)
+{
+    int result = 1;
+
+    while (exponent > 0)
+    {
+        result *= base;
+        exponent--;
+    }
+
+    return result;
+}
+
+/**
+ * ctrl_c_handler - Handles the signal raised by CTRL-C
+ * @signum: Signal number
+ *
+ * This function is the signal handler for the CTRL-C signal (SIGINT). It
+ * displays a new prompt when the signal is received, indicating that the
+ * shell is ready to accept a new command.
+ *
+ * Return: void
+ */
+void ctrl_c_handler(int signum)
+{
+    if (signum == SIGINT)
+    {
+        /* Display new prompt when CTRL-C signal is received */
+        display("\n($) ", STDIN_FILENO);
+    }
+}
+
+/**
+ * remove_comment - Removes/ignores everything after a '#' character
+ * @input: Input string to be modified
+ *
+ * This function removes any characters after the first '#' character in the
+ * input string. It is used to remove comments from the input, as anything
+ * after the '#' character is ignored.
+ *
+ * Return: void
+ */
+void remove_comment(char *input)
+{
+    int i = 0;
+
+    if (input[i] == '#')
+    {
+        /* If '#' is the first character, remove the entire line */
+        input[i] = '\0';
+    }
+    else
+    {
+        /* Find the first '#' character preceded by a space and remove the rest of the line */
+        while (input[i] != '\0')
+        {
+            if (input[i] == '#' && input[i - 1] == ' ')
+            {
+                break;
+            }
+            i++;
+        }
+        input[i] = '\0';
+    }
+}
+
+/**
+ * _strcat - Concatenates two strings
+ * @destination: Pointer to the string to be concatenated
+ * @source: Pointer to the string to concatenate
+ *
+ * This function appends the characters of the source string to the
+ * destination string, overwriting the terminating null byte ('\0') at
+ * the end of the destination, and then adds a new terminating null
+ * byte. The resulting concatenated string is returned.
+ *
+ * Return: Pointer to the resulting concatenated string.
+ */
+char *_strcat(char *destination, char *source)
+{
+    char *new_string = NULL;
+    int len_dest = _strlen(destination);
+    int len_source = _strlen(source);
+
+    new_string = malloc(sizeof(*new_string) * (len_dest + len_source + 1));
+    _strcpy(destination, new_string);
+    _strcpy(source, new_string + len_dest);
+    new_string[len_dest + len_source] = '\0';
+
+    return (new_string);
+}
+
+/**
+ * _strchr - Locates a character in a string
+ * @s: The string to be searched
+ * @c: The character to be checked
+ *
+ * This function searches for the first occurrence of the character c in the
+ * string s. It returns a pointer to the location of the character if found,
+ * or NULL if the character is not found in the string.
+ *
+ * Return: A pointer to the first occurrence of c in s, or NULL if c is not found
+ */
+char *_strchr(char *s, char c)
+{
+    int i = 0; /* Counter for iterating over string s */
+
+    /* Iterate over s until the end of the string or until the character c is found */
+    for (; s[i] != c && s[i] != '\0'; i++)
+    {
+        /* Empty body, just incrementing i */
+    }
+
+    /* If c is found in s, return a pointer to the location in s where c was found */
+    if (s[i] == c)
+    {
+        return (s + i);
+    }
+    else
+    {
+        /* Otherwise, return NULL to indicate that c was not found in s */
+        return (NULL);
+    }
+}
+
+/**
+ * display - Displays a string to stdout
+ * @string: The string to be displayed
+ * @stream: The stream to display the string to
+ *
+ * This function writes the characters of the string to the specified stream.
+ * It iterates over the characters of the string until the null terminator is
+ * reached and writes each character to the stream using the write system call.
+ *
+ * Return: void
+ */
+void display(char *string, int stream)
+{
+    int i = 0;
+
+    for (; string[i] != '\0'; i++)
+    {
+        write(stream, &string[i], 1);
+    }
+}
+
+/**
+ * _line_rm - Removes new line from a string
+ * @str: The string to be modified
+ *
+ * This function iterates over the characters of the string until it reaches
+ * the null terminator or encounters a new line character ('\n'). If a new line
+ * character is found, it replaces it with the null terminator, effectively
+ * removing the new line from the string.
+ *
+ * Return: void
+ */
+void _line_rm(char *str)
+{
+    int i = 0;
+
+    while (str[i] != '\0')
+    {
+        if (str[i] == '\n')
+            break;
+        i++;
+    }
+
+    str[i] = '\0';
+}
+
+/**
+ * _strcpy - Copies a string to another buffer
+ * @source: The source string to be copied
+ * @dest: The destination buffer to copy to
+ *
+ * This function copies the characters from the source string to the destination
+ * buffer until it reaches the null terminator. It assumes that the destination
+ * buffer has enough space to accommodate the entire source string.
+ *
+ * Return: void
+ */
+void _strcpy(char *source, char *dest)
+{
+    int i = 0;
+
+    for (; source[i] != '\0'; i++)
+    {
+        dest[i] = source[i];
+    }
+    dest[i] = '\0';
+}
+
+/**
+ * env - Displays the current environment
+ * @tokenized_command: The command entered
+ *
+ * This function is used to display the current environment. It takes the
+ * tokenized command as an argument, although it is not used in this implementation.
+ * The function iterates over the `environ` array, which contains the environment
+ * variables, and displays each variable followed by a new line.
+ *
+ * Return: void
+ */
+void env(char **tokenized_command __attribute__((unused)))
+{
+    int i;
+
+    /* Iterate over the `environ` array */
+    for (i = 0; environ[i] != NULL; i++)
+    {
+        /* Display each environment variable */
+        display(environ[i], STDOUT_FILENO);
+
+        /* Add a new line after each variable */
+        display("\n", STDOUT_FILENO);
+    }
+}
+
+/**
+ * quit - Exits the shell
+ * @tokenized_command: The command entered
+ *
+ * This function is used to exit the shell. It takes the tokenized command as an
+ * argument. If the command has no arguments, the function frees allocated memory
+ * and exits the shell with the current status. If the command has one argument,
+ * it is expected to be an exit status. The function converts the argument to an
+ * integer and exits the shell with that status. If the command has more than one
+ * argument, an error message is displayed.
+ *
+ * Return: void
+ */
+void quit(char **tokenized_command)
+{
+    int num_token = 0, arg;
+
+    /* Count the number of tokens in the command */
+    for (; tokenized_command[num_token] != NULL; num_token++)
+        ;
+
+    if (num_token == 1)
+    {
+        /* Free allocated memory and exit with current status */
+        free(tokenized_command);
+        free(line);
+        free(commands);
+        exit(status);
+    }
+    else if (num_token == 2)
+    {
+        /* Convert the argument to an integer */
+        arg = _atoi(tokenized_command[1]);
+
+        if (arg == -1)
+        {
+            /* Display an error message for an illegal number */
+            display(shell_name, STDERR_FILENO);
+            display(": 1: exit: Illegal number: ", STDERR_FILENO);
+            display(tokenized_command[1], STDERR_FILENO);
+            display("\n", STDERR_FILENO);
+            status = 2;
+        }
+        else
+        {
+            /* Free allocated memory and exit with the specified status */
+            free(line);
+            free(tokenized_command);
+            free(commands);
+            exit(arg);
+        }
+    }
+    else
+    {
+        /* Display an error message for too many arguments */
+        display("$: exit doesn't take more than one argument\n", STDERR_FILENO);
+    }
+}
+
+/**
+ * execute_command - Executes a command based on its type
+ * @tokenized_command: Tokenized form of the command (e.g., {ls, -l, NULL})
+ * @command_type: Type of the command
+ *
+ * Return: void
+ */
+void execute_command(char **tokenized_command, int command_type)
+{
+    void (*func)(char **command);
+
+    if (command_type == EXTERNAL_COMMAND)
+    {
+        // Execute external command using execve
+        if (execve(tokenized_command[0], tokenized_command, NULL) == -1)
+        {
+            perror(_getenv("PWD"));
+            exit(2);
+        }
+    }
+    else if (command_type == PATH_COMMAND)
+    {
+        // Execute command using the confirmed location from PATH
+        if (execve(confirm_loc(tokenized_command[0]), tokenized_command, NULL) == -1)
+        {
+            perror(_getenv("PWD"));
+            exit(2);
+        }
+    }
+    else if (command_type == INTERNAL_COMMAND)
+    {
+        // Execute internal command by getting the corresponding function pointer
+        func = get_func(tokenized_command[0]);
+        func(tokenized_command);
+    }
+    else if (command_type == INVALID_COMMAND)
+    {
+        // Display an error message for invalid command and set the status to 127
+        display(shell_name, STDERR_FILENO);
+        display(": 1: ", STDERR_FILENO);
+        display(tokenized_command[0], STDERR_FILENO);
+        display(": not found\n", STDERR_FILENO);
+        status = 127;
+    }
+}
+
+/**
+ * confirm_loc - Checks if a command is found in the PATH
+ * @command: Command to be checked
+ *
+ * Return: Path where the command is found, NULL if not found
+ */
+char *confirm_loc(char *command)
+{
+    char **path_array = NULL;
+    char *temp, *temp2, *path_cpy;
+    char *path = _getenv("PATH");
+    int i;
+
+    // Check if PATH environment variable is empty or not set
+    if (path == NULL || _strlen(path) == 0)
+        return (NULL);
+
+    // Create a copy of the PATH string
+    path_cpy = malloc(sizeof(*path_cpy) * (_strlen(path) + 1));
+    _strcpy(path, path_cpy);
+
+    // Tokenize the PATH string using ':' as the delimiter
+    path_array = tokenizer(path_cpy, ":");
+
+    // Iterate through each directory in the PATH
+    for (i = 0; path_array[i] != NULL; i++)
+    {
+        // Create the full path by concatenating directory and command
+        temp2 = _strcat(path_array[i], "/");
+        temp = _strcat(temp2, command);
+
+        // Check if the full path exists and is accessible
+        if (access(temp, F_OK) == 0)
+        {
+            free(temp2);
+            free(path_array);
+            free(path_cpy);
+            return (temp);
+        }
+
+        // Free the temporary strings for the next iteration
+        free(temp);
+        free(temp2);
+    }
+
+    // Free the allocated memory and return NULL if command is not found in any directory
+    free(path_cpy);
+    free(path_array);
+    return (NULL);
+}
+
+/**
+ * get_func - Retrieves a function based on the command given and a mapping
+ * @command: String to check against the mapping
+ *
+ * Return: Pointer to the proper function, or NULL on failure
+ */
+void (*get_func(char *command))(char **)
+{
+    int i;
+    mapping_func mapping[] = {
+        {"env", env}, {"exit", quit}
+    };
+
+    // Iterate through the mapping to find a matching command
+    for (i = 0; i < 2; i++)
+    {
+        if (_strcmp(command, mapping[i].command_name) == 0)
+            return (mapping[i].func);
+    }
+
+    // Return NULL if no matching command is found
+    return (NULL);
+}
+
+
+/**
+ * add - Adds two integers together
+ * @a: The first integer to add
+ * @b: The second integer to add
+ * Return: The sum of a and b
+ */
+int add(int a, int b)
+{
+    return a + b;
+}
+
+
