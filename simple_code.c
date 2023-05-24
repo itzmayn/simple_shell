@@ -7,6 +7,14 @@
  */
 int main(void)
 {
-    printf("Hello, world!\n"); // Print the message to the console
+    char message[] = "Hello, world!\n"; // Define the message to be printed
+    int i;
+
+    for (i = 0; message[i] != '\0'; i++)
+    {
+        putchar(message[i]); // Print each character using putchar
+    }
+
     return 0; // Exit the program with a success status
 }
+
