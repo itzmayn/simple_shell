@@ -9,11 +9,14 @@
 #include <errno.h>
 #include <dirent.h>
 
-/* Constants */
+
+
+/*constants*/
 #define EXTERNAL_COMMAND 1
 #define INTERNAL_COMMAND 2
 #define PATH_COMMAND 3
 #define INVALID_COMMAND -1
+
 #define minimum(x, y) (((x) < (y)) ? (x) : (y))
 
 typedef struct map
@@ -22,7 +25,13 @@ typedef struct map
 	void (*func)(char **command);
 } mapping_func;
 
-/* Function Prototypes */
+extern char **environ;
+extern char *line;
+extern char *shell_name;
+extern char **commands;
+extern int status;
+
+
 void display(char *, int);
 char **tokenizer(char *, char *);
 int _strlen(char *);
@@ -54,20 +63,10 @@ extern void handle_senario_a(void);
 extern void init(char **current_command, int type_command);
 
 
-
-/* Global Variables */
-extern char **environ;
-extern char *line;
-extern char *shell_name;
-extern char **commands;
-extern int status;
-
-/* Definitions */
 char **commands = NULL;
 char *line = NULL;
 char *shell_name = NULL;
 int status = 0;
-
 
 
 /**
